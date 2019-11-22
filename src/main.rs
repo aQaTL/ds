@@ -4,8 +4,9 @@ fn clap_app() -> clap::App<'static, 'static> {
 	use clap::*;
 	App::new(env!("CARGO_PKG_NAME"))
 		.version(env!("CARGO_PKG_VERSION"))
+		.author(env!("CARGO_PKG_AUTHORS"))
 		.about(env!("CARGO_PKG_DESCRIPTION"))
-		.arg(Arg::with_name("FILE")
+		.arg(Arg::with_name("DIR")
 			.required(false)
 			.index(1)
 			.takes_value(true))
@@ -14,7 +15,7 @@ fn clap_app() -> clap::App<'static, 'static> {
 fn main() {
 	let matches = clap_app().get_matches();
 	let file = matches
-		.value_of("FILE")
+		.value_of("DIR")
 		.map_or_else(
 			|| std::env::current_dir().expect("Failed to get current dir"),
 			|file| std::path::PathBuf::from(file));
