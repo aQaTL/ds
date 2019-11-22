@@ -1,6 +1,6 @@
 use std::{
 	path::Path,
-	fs::DirEntry,
+	fs::{DirEntry, Metadata},
 	io,
 };
 
@@ -28,9 +28,9 @@ impl DirIter {
 }
 
 impl Iterator for DirIter {
-	type Item = io::Result<DirEntry>;
+	type Item = io::Result<(DirEntry, Metadata)>;
 
-	fn next(&mut self) -> Option<io::Result<DirEntry>> {
+	fn next(&mut self) -> Option<Self::Item> {
 		let last = match self.stack.pop() {
 			Some(last) => last,
 			None => return None,
@@ -47,6 +47,6 @@ impl Iterator for DirIter {
 			}
 		}
 		
-		Some(Ok(last))
+		Some(Ok((last, metadata)))
 	}
 }

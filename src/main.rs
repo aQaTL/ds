@@ -1,3 +1,5 @@
+use std::io;
+
 mod dir_iter;
 
 fn clap_app() -> clap::App<'static, 'static> {
@@ -13,26 +15,24 @@ fn clap_app() -> clap::App<'static, 'static> {
 }
 
 fn main() {
+	if let Err(e) = _main() {
+		eprintln!("[ERROR]: {}", e);
+	}
+}
+
+fn _main() -> io::Result<()> {
 	let matches = clap_app().get_matches();
 	let file = matches
 		.value_of("DIR")
 		.map_or_else(
-			|| std::env::current_dir().expect("Failed to get current dir"),
-			|file| std::path::PathBuf::from(file));
+			|| std::env::current_dir(),
+			|file| Ok(std::path::PathBuf::from(file)))?;
 
 	println!("Searched dir: {}", file.display());
 
 	let mut size_sum: u64= 0;
 
-	for file in dir_iter::DirIter::new(&file).expect("Failed to read dir").filter_map(Result::ok) {
-		let metadata = match file.metadata() {
-			Ok(m) => m,
-			Err(e) => {
-				eprintln!("Failed to get metadata for {:?} with error: {}", file.path(), e);
-				continue;
-			},
-		};
-
+	for (_file, metadata) in dir_iter::DirIter::new(&file)?.filter_map(Result::ok) {
 		if metadata.is_dir() {
 			continue;
 		}
@@ -45,6 +45,8 @@ fn main() {
 		let hr = bytes_in_human_readable(size_sum);
 		println!("{:.1} {}B\n{:.1} {}B", hr.bin_value, hr.bin_name, hr.si_value, hr.si_name);
 	}
+
+	Ok(())
 }
 
 struct Multiple<'a> {
